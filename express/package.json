@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "npm run services:up && npm run migrate:up && node server.js",
+    "dev": "nodemon --ignore *.db server.js",
     "services:up": "docker compose -f infra/compose.yaml up -d",
     "services:down": "docker compose -f infra/compose.yaml down",
     "services:stop": "docker compose -f infra/compose.yaml stop",
@@ -18,8 +18,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "better-sqlite3": "^12.11.1",
     "express": "^5.2.1",
+    "morgan": "^1.11.0",
     "node-pg-migrate": "^8.0.4",
-    "pg": "^8.21.0"
+    "pg": "^8.21.0",
+    "sqlite3": "^6.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
   }
 }
