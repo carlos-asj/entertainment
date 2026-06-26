@@ -3,7 +3,31 @@ import { ConnDB } from "../infra/database.js";
 let db = ConnDB();
 
 export const postProgress = (req, res) => {
-  const { id_serie, seasons_now, episodes_now, status, streaming } = req.body;
+  const { id_serie, seasons_now, episodes_now, streaming } = req.body;
+
+  const serie = db.prepare("SELECT seasons, episodes FROM series WHERE id = ?").get(id_serie)
+
+  const status = seasons_now === 0 && episodes_now === 0
+  ? "Não Assistido"
+  : seasons_now >= serie.seasons && episodes_now >= serie.episodes
+    ? "Concluído"
+    : "Assistindo"
+
+  if (!serie) {
+    return res.status(404).json({ error: "Série não encontrada" })
+  }
+
+  if (seasons_now > serie.seasons) {
+    return res.status(400).json({ error: `A série possui apenas ${serie.seasons} temporadas` })
+  }
+
+  if (episodes_now > serie.episodes) {
+    return res.status(400).json({ error: `A série possui apenas ${serie.episodes} episódios` })
+  }
+
+  if (seasons_now < 0 || episodes_now < 0) {
+    return res.status(400).json({ error: "Os valores não podem ser negativos" })
+  }
 
   try {
     const progress_now = db
@@ -14,19 +38,20 @@ export const postProgress = (req, res) => {
       db.prepare(
         `
             UPDATE progress_series
-            SET seasons_now = ?, episodes_now = ?, status = ?, streaming = ?
+            SET seasons_now = ?, episodes_now = ?, status = ?
             WHERE id_serie = ?
         `,
-      ).run(seasons_now, episodes_now, status, streaming, id_serie);
+      ).run(seasons_now, episodes_now, status, id_serie);
+
 
       return res.status(200).json({ message: "progress updated successfully" });
     } else {
       db.prepare(
         `
-            INSERT INTO progress_series (id_serie, seasons_now, episodes_now, status, streaming)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO progress_series (id_serie, seasons_now, episodes_now, status)
+            VALUES (?, ?, ?, ?)
         `,
-      ).run(id_serie, seasons_now, episodes_now, status, streaming);
+      ).run(id_serie, seasons_now, episodes_now, status);
 
       return res.status(201).json({ message: "First progress saved" });
     }

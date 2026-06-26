@@ -1,5 +1,6 @@
 import express from "express";
 import morgan from "morgan";
+import cors from 'cors'
 import seriesRoutes from "./routes/series.routes.js";
 import progressRoutes from "./routes/progress.routes.js";
 import { ConnDB } from "./infra/database.js";
@@ -8,6 +9,7 @@ const app = express();
 const PORT = 3000;
 
 app.use(morgan("dev"));
+app.use(cors());
 
 app.use(express.json());
 
